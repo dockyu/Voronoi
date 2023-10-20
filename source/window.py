@@ -1,18 +1,55 @@
+import threading
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from voronoi_algorithm import Voronoi
 
+points = [(10,10),(21,31),(52,72),(153,43),(254,154),(165,365),(96,426),(267,367)]
+voronoi = Voronoi()
+
+# 功能function
+def draw_test():
+    ax.clear()  # 先清除原先的圖形
+    ax.set_xlim([0, 600])  # 設定 x 軸範圍
+    ax.set_ylim([0, 600])  # 設定 y 軸範圍
+
+    # 畫出三個點：(5, 20), (150, 300), 和 (500, 260)
+    x_values = [5, 150, 500]
+    y_values = [20, 300, 260]
+    ax.scatter(x_values, y_values, color='red')
+
+    # 更新畫布
+    canvas.draw()
+
+def run_all(): # 執行到結束
+    voronoi.set_step_by_step(False)
+    if voronoi.divide_and_conquer_wait:
+        voronoi.trigger()
+    else:
+        threading.Thread(target=voronoi.divide_and_conquer, args=(points, ax, canvas)).start()
+
+def run_next(): # 執行到下一步
+    voronoi.set_step_by_step(True)
+    if voronoi.divide_and_conquer_wait:
+        voronoi.trigger()
+    else:
+        threading.Thread(target=voronoi.divide_and_conquer, args=(points, ax, canvas)).start()
+
+def run_exit(): # 結束程式
+    voronoi.exit()
 
 # 按鈕對應的function
 def on_run_clicked():
-    print("Run button clicked")
+    run_all()
 
 def on_step_by_step_clicked():
-    print("Step by Step button clicked")
+    run_next()
 
 def on_clear_clicked():
+    run_exit()
+    points.clear()
     ax.clear()  # 清除 matplotlib 畫布
     canvas.draw()  # 重新繪制畫布
 
@@ -29,20 +66,6 @@ def export_output_file():
 def on_test_clicked():
     print("Test button clicked")
     draw_test()
-
-# 功能function
-def draw_test():
-    ax.clear()  # 先清除原先的圖形
-    ax.set_xlim([0, 600])  # 設定 x 軸範圍
-    ax.set_ylim([0, 600])  # 設定 y 軸範圍
-
-    # 畫出三個點：(5, 20), (150, 300), 和 (500, 260)
-    x_values = [5, 150, 500]
-    y_values = [20, 300, 260]
-    ax.scatter(x_values, y_values, color='red')
-
-    # 更新畫布
-    canvas.draw()
 
 # 建立視窗
 root = tk.Tk()
