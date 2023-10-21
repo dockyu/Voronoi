@@ -10,18 +10,20 @@ class Voronoi:
         self.step_by_step = False # 代表是否要一步一步執行
         self.divide_and_conquer_wait = False # 代表 divide_and_conquer 函式是否已被執行且正在等待
         self.exit_flag = False # 代表是否要結束程式
+        self.finish = False # 代表是否執行完畢
 
-    def divide_and_conquer(self, ax, canvas, S, points): 
+    def divide_and_conquer(self, ax, canvas, S, points, level=0): 
         # 用來建立thread
         # 用來找出集合S的Voronoi diagram
+        self.set_finish(False) # 設置程式未完成
 
         if len(S) <= 1: # 如果集合S只有一個點，可以直接做出Voronoi diagram
             V = False
             pass
         else: # 如果集合S有兩個以上的點，則要先分割集合S
             SL, SR = self.devide(S) # 分割集合S為SL和SR
-            VL = self.divide_and_conquer(ax, canvas, SL, points) # 找出SL的Voronoi diagram
-            VR = self.divide_and_conquer(ax, canvas, SR, points) # 找出SR的Voronoi diagram
+            VL = self.divide_and_conquer(ax, canvas, SL, points, level+1) # 找出SL的Voronoi diagram
+            VR = self.divide_and_conquer(ax, canvas, SR, points, level+1) # 找出SR的Voronoi diagram
 
             V = self.merge(VL, VR) # 合併VL和VR，得出V也就是S的Voronoi diagram
 
@@ -36,7 +38,8 @@ class Voronoi:
                     self.divide_and_conquer_wait = False
                     if self.exit_flag: # 被喚醒後檢查是否要結束程式(exit() 被觸發)
                         raise ExitCommand() 
-            
+            if level == 0:
+                self.set_finish(True) # 設置程式已完成
 
         return V
 
@@ -65,6 +68,9 @@ class Voronoi:
     def set_step_by_step(self, value): # 設置 step_by_step 屬性
         with self.condition:
             self.step_by_step = value
+    def set_finish(self, value): # 設置 finish 屬性
+        with self.condition:
+            self.finish = value
 
     def set_divide_and_conquer_wait(self, value): # 設置 divide_and_conquer_wait 屬性
         with self.condition:

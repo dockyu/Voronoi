@@ -15,8 +15,10 @@ def run_next(ax, canvas, points, voronoi): # 執行到下一步
     else:
         threading.Thread(target=voronoi.divide_and_conquer, args=(ax, canvas, points, points)).start()
 
+    
 def run_exit(voronoi): # 結束程式
     voronoi.exit()
+    voronoi.set_finish(True) # 設置一筆測資已完成
 
 
 def canvas_draw_points(ax, canvas, points):  # 畫出點
