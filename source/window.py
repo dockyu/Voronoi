@@ -12,20 +12,28 @@ from controller import *
 def on_run_clicked(ax, canvas, test_data, voronoi): # run按鈕執行
     if voronoi.finish: # 如果上一個測資已做完，刪除上一個測資
         test_data.pop(0)
+        voronoi.set_finish(False) # 設置程式未完成
     if not test_data: # 如果沒有測資，則不執行
         return
-    points=test_data[0] # 取得測資
+    points=sorted(test_data[0], key=lambda point: point[0]) # 取得測資
     run_all(ax, canvas, points, voronoi) # 執行到結束
 
 def on_step_by_step_clicked(ax, canvas, test_data, voronoi): # step by step按鈕執行
     if voronoi.finish: # 如果上一個測資已做完，刪除上一個測資
         test_data.pop(0)
-    points=test_data[0]
+        voronoi.set_finish(False) # 設置程式未完成
+    if not test_data: # 如果沒有測資，則不執行
+        return
+    points=sorted(test_data[0], key=lambda point: point[0]) # 取得測資
     run_next(ax, canvas, points, voronoi) # 如果是新的側資，則開始執行到下一步，否則繼續執行到下一步
 
 def on_clear_clicked(ax, canvas, test_data, voronoi): # clear按鈕執行
+    # if not test_data: # 如果沒有測資，則不執行
+    #     return
     run_exit(voronoi) # 結束計算，並設定成結束一筆測資
     points=[]
+    if len(test_data) > 0:
+        test_data[0] = points # 清除測資
     canvas_draw_points(ax, canvas, points) # 清除畫布並畫出0個點
 
 def import_input_file(ax, canvas, test_data, voronoi):
@@ -55,8 +63,8 @@ def export_output_file():
     print("Exported Output File")
 
 def on_canvas_click(event, ax, canvas, test_data, voronoi): # 點擊畫布執行
-    if voronoi.finish: # 如果上一個測資已做完，刪除上一個測資
-        test_data.pop(0)
+    if voronoi.finish: # 如果上一個測資已做完
+    #     test_data.pop(0) # 刪除上一個測資
         voronoi.set_finish(False) # 設置程式未完成
     x, y = int(event.xdata), int(event.ydata)  # 取整數座標
     if x is not None and y is not None:  # 檢查是否點擊在軸（Axes）內

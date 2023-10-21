@@ -3,6 +3,7 @@ import threading
 
 def run_all(ax, canvas, points, voronoi): # 執行到結束
     voronoi.set_step_by_step(False)
+    # voronoi.set_finish(False) # 設置程式未完成
     if voronoi.divide_and_conquer_wait:
         voronoi.trigger()
     else:
@@ -10,6 +11,7 @@ def run_all(ax, canvas, points, voronoi): # 執行到結束
 
 def run_next(ax, canvas, points, voronoi): # 執行到下一步
     voronoi.set_step_by_step(True)
+    # voronoi.set_finish(False) # 設置程式未完成
     if voronoi.divide_and_conquer_wait:
         voronoi.trigger()
     else:
