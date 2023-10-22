@@ -23,6 +23,9 @@ class Polygon:
 class VoronoiDiagram:
     def __init__(self):
         self.polygons = []
+        self.convex_hull = []  # 初始化為空列表，往下是順時針儲存凸包多邊形的索引
+        self.leftmost_point_index = None  # 最左點的索引
+        self.rightmost_point_index = None  # 最右點的索引
 
     def add_polygon(self, polygon):
         self.polygons.append(polygon)

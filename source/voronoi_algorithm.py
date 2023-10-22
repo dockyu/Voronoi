@@ -1,6 +1,8 @@
 import threading
 from controller import canvas_draw_points
 from data_structure import Point, Edge, Polygon, VoronoiDiagram
+from convex_hull_algorithm import find_lower_tangents, find_upper_tangents, create_new_convex_hull
+
 class ExitCommand(Exception):
     pass
 
@@ -58,20 +60,35 @@ class Voronoi:
         polygon = Polygon(center=point)  # 設定多邊形的「中心點」
         voronoi = VoronoiDiagram()
         voronoi.add_polygon(polygon)
+        voronoi.convex_hull.append(0) # 因為只有一個點，所以凸包Polygons中第一個多邊形的中心
+        voronoi.leftmost_point_index = 0 # 因為只有一個點，所以最左點就是這個點
+        voronoi.rightmost_point_index = 0 # 因為只有一個點，所以最右點就是這個點
         return voronoi
 
     def merge(self, VL, VR): # 合併VL和VR，得出V也就是S的Voronoi diagram
         # 初始化結果的VoronoiDiagram
         V = VoronoiDiagram()
 
-        # 測試用
-        for polygon in VL.polygons:
-            V.add_polygon(polygon)
-        for polygon in VR.polygons:
-            V.add_polygon(polygon)
+        # STEP 1: 合併VL和VR的voronoi多邊形
+        V.polygons = VL.polygons + VR.polygons
 
-        # STEP 1: 找出VL和VR的切線（這個部分需要你根據具體算法來實現）
-        # upper_tangent, lower_tangent = find_tangents(VL, VR)
+        # STEP 2: 找出VL和VR的切線（這個部分需要你根據具體算法來實現）
+        upper_tangent_left, upper_tangent_right = find_upper_tangents(VL, VR)
+        lower_tangent_left, lower_tangent_right = find_lower_tangents(VL, VR)
+        # upper_tangent_left 是上切線在VL中的點的索引
+        # upper_tangent_right 是上切線在VR中的點的索引
+        # lower_tangent_left 是下切線在VL中的點的索引
+        # lower_tangent_right 是下切線在VR中的點的索引
+        # print(f"upper_tangent_left: {upper_tangent_left}")
+        # print(f"upper_tangent_right: {upper_tangent_right}")
+        # print(f"lower_tangent_left: {lower_tangent_left}")
+        # print(f"lower_tangent_right: {lower_tangent_right}")
+
+        # STEP 3: 利用切線創建新的凸包多邊形
+        create_new_convex_hull(V, VL, VR, upper_tangent_left, upper_tangent_right, lower_tangent_left, lower_tangent_right)
+
+
+
 
         # STEP 2: 從上切線的中垂線開始
         # mid_line = compute_mid_line(upper_tangent)
@@ -93,16 +110,26 @@ class Voronoi:
         # S是目前Voronoi diagram 正常會有的點的集合，只用來輸出測試，之後會刪掉
         # points是所有點的集合，用來輸出測試，並且用來畫出所有點，包含不在Voronoi diagram中的點
         canvas_draw_points(ax, canvas, points) # 清除畫布並畫出所有點
-        print(f"數量 of S: {len(S)}")
-        print(f"S 的座標: {S}")
 
-        # 印出所有Voronoi多邊形的中心
-        # 印出所有多邊形中心座標
-        centers = []
-        for polygon in V.polygons:
-            center = polygon.center
-            centers.append(f"({center.x}, {center.y})")
-        print("所有多邊形的中心座標: ", ", ".join(centers))
+        # 測試用，之後會刪掉
+        # print(f"數量 of S: {len(S)}")
+        # print(f"S 的座標: {S}")
+
+        # 印出所有 polygon 的中心
+        polygon_centers = [f"({polygon.center.x}, {polygon.center.y})" for polygon in V.polygons]
+        print(f"Polygon Centers: {', '.join(polygon_centers)}")
+        # 印出 convex hull 對應的中心的點
+        convex_hull_centers = [f"({V.polygons[index].center.x}, {V.polygons[index].center.y})" for index in V.convex_hull]
+        print(f"Convex Hull Centers: {', '.join(convex_hull_centers)}")
+        # 印出 left 和 right 的座標
+        left_point = "None"
+        right_point = "None"
+        if V.leftmost_point_index is not None:
+            left_point = f"({V.polygons[V.leftmost_point_index].center.x}, {V.polygons[V.leftmost_point_index].center.y})"
+        if V.rightmost_point_index is not None:
+            right_point = f"({V.polygons[V.rightmost_point_index].center.x}, {V.polygons[V.rightmost_point_index].center.y})"
+        print(f"Left: {left_point}, Right: {right_point}")
+        return
 
     def trigger(self):
         with self.condition:
